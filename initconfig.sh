@@ -11,8 +11,6 @@ check_ipv6_support() {
 }
 
 add_node_config() {
-    isreality=""
-    istls=""
     echo -e "${green}请选择节点核心类型：${plain}"
     echo -e "${green}1. xray${plain}"
     echo -e "${green}2. singbox${plain}"
@@ -41,7 +39,7 @@ add_node_config() {
         fi
     done
 
-    if [ "$core_hysteria2" = true ] && [ "$core_xray" = false ] && [ "$core_sing" = false ]; then
+    if [ "$core_type" == "3" ]; then
         NodeType="hysteria2"
     else
         echo -e "${yellow}请选择节点传输协议：${plain}"
@@ -50,9 +48,6 @@ add_node_config() {
         echo -e "${green}3. Vmess${plain}"
         if [ "$core_sing" == true ]; then
             echo -e "${green}4. Hysteria${plain}"
-            echo -e "${green}5. Hysteria2${plain}"
-        fi
-        if [ "$core_hysteria2" == true ] && [ "$core_sing" = false ]; then
             echo -e "${green}5. Hysteria2${plain}"
         fi
         echo -e "${green}6. Trojan${plain}"  
@@ -199,6 +194,16 @@ EOF
 )
     fi
     nodes_config+=("$node_config")
+    
+    # 重置状态变量，避免影响下一个节点配置
+    core_xray=false
+    core_sing=false
+    core_hysteria2=false
+    isreality=""
+    istls=""
+    certmode="none"
+    certdomain="example.com"
+    fastopen=true
 }
 
 generate_config_file() {
@@ -216,16 +221,15 @@ generate_config_file() {
     
     nodes_config=()
     first_node=true
-
+    core_xray=false
+    core_sing=false
+    core_hysteria2=false
+    fixed_api_info=false
+    check_api=false
     
-    all_core_types=""
     while true; do
-        core_xray=false
-        core_sing=false
-        core_hysteria2=false
-
         if [ "$first_node" = true ]; then
-            read -rp "请输入机场网址(https://example.com)敚" ApiHost
+            read -rp "请输入机场网址(https://example.com)：" ApiHost
             read -rp "请输入面板对接API Key：" ApiKey
             read -rp "是否设置固定的机场网址和API Key？(y/n)" fixed_api
             if [ "$fixed_api" = "y" ] || [ "$fixed_api" = "Y" ]; then
@@ -233,24 +237,16 @@ generate_config_file() {
                 echo -e "${red}成功固定地址${plain}"
             fi
             first_node=false
+            add_node_config
         else
             read -rp "是否继续添加节点配置？(回车继续，输入n或no退出)" continue_adding_node
             if [[ "$continue_adding_node" =~ ^[Nn][Oo]? ]]; then
                 break
             elif [ "$fixed_api_info" = false ]; then
-                read -rp "请输入机场网址(https://example.com)敚" ApiHost
+                read -rp "请输入机场网址(https://example.com)：" ApiHost
                 read -rp "请输入面板对接API Key：" ApiKey
             fi
-        fi
-        add_node_config
-        if [ "$core_xray" = true ] && [[ ! $all_core_types =~ "xray" ]]; then
-            all_core_types+="xray "
-        fi
-        if [ "$core_sing" = true ] && [[ ! $all_core_types =~ "sing" ]]; then
-            all_core_types+="sing "
-        fi
-        if [ "$core_hysteria2" = true ] && [[ ! $all_core_types =~ "hysteria2" ]]; then
-            all_core_types+="hysteria2 "
+            add_node_config
         fi
     done
 
@@ -258,7 +254,7 @@ generate_config_file() {
     cores_config="["
 
     # 检查并添加xray核心配置
-    if [[ $all_core_types =~ "xray" ]]; then
+    if [ "$core_xray" = true ]; then
         cores_config+="
     {
         \"Type\": \"xray\",
@@ -272,7 +268,7 @@ generate_config_file() {
     fi
 
     # 检查并添加sing核心配置
-    if [[ $all_core_types =~ "sing" ]]; then
+    if [ "$core_sing" = true ]; then
         cores_config+="
     {
         \"Type\": \"sing\",
@@ -290,7 +286,7 @@ generate_config_file() {
     fi
 
     # 检查并添加hysteria2核心配置
-    if [[ $all_core_types =~ "hysteria2" ]]; then
+    if [ "$core_hysteria2" = true ]; then
         cores_config+="
     {
         \"Type\": \"hysteria2\",

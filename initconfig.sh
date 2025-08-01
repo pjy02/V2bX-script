@@ -228,6 +228,11 @@ generate_config_file() {
     check_api=false
     
     while true; do
+        # 每次循环前重置核心类型状态，避免交叉污染
+        core_xray=false
+        core_sing=false
+        core_hysteria2=false
+        
         if [ "$first_node" = true ]; then
             read -rp "请输入机场网址(https://example.com)：" ApiHost
             read -rp "请输入面板对接API Key：" ApiKey

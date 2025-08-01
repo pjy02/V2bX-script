@@ -423,7 +423,6 @@ show_V2bX_version() {
 }
 
 add_node_config() {
-    unset core NodeType
     echo -e "${green}请选择节点核心类型：${plain}"
     echo -e "${green}1. xray${plain}"
     echo -e "${green}2. singbox${plain}"
@@ -960,7 +959,7 @@ show_usage() {
 show_menu() {
     echo -e "
   ${green}V2bX 后端管理脚本，${plain}${red}不适用于docker${plain}
---- https://github.com/pjy02/V2bX ---
+--- https://github.com/wyx2685/V2bX ---
   ${green}0.${plain} 修改配置
 ————————————————
   ${green}1.${plain} 安装 V2bX

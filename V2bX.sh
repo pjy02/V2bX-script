@@ -423,6 +423,7 @@ show_V2bX_version() {
 }
 
 add_node_config() {
+    unset core NodeType
     echo -e "${green}请选择节点核心类型：${plain}"
     echo -e "${green}1. xray${plain}"
     echo -e "${green}2. singbox${plain}"
